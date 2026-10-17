@@ -28,6 +28,12 @@ Clock, packages, 2G swap, UFW (22, 80, 443), fail2ban, unattended upgrades.
 sudo bash server-setup/setup.sh
 ```
 
+Open one more TCP port in UFW. The name is the label shown in `ufw status`.
+
+```bash
+sudo ALLOW_PORT=8080 ALLOW_NAME='app' bash server-setup/allow-port.sh
+```
+
 Key-only SSH on port 22. Existing `authorized_keys` lines stay, including the PEM key. Add this PC's public key as an extra argument (`ssh-ed25519 ...` or `ssh-rsa ...`).
 
 ```bash
@@ -123,6 +129,7 @@ sudo REDIS_CLIENT_IP=203.0.113.10 bash redis/allow-ip.sh
 | Path | What it does |
 | --- | --- |
 | `server-setup/setup.sh` | Sets the timezone to UTC, installs curl, ca-certificates, acl, UFW, fail2ban, and unattended-upgrades. Creates a 2G swap file with swappiness 10. UFW allows 22, 80, and 443. fail2ban watches SSH. Does not install Nginx, PostgreSQL, Redis, or change the SSH port. |
+| `server-setup/allow-port.sh` | Opens one TCP port in UFW. Asks for `ALLOW_PORT` and `ALLOW_NAME`. The name is stored as the UFW comment. A second run for the same port does not add another rule. |
 | `ssh/setup.sh` | Installs OpenSSH on port 22. Password login and root login are off. Existing `authorized_keys` lines stay. Pass public keys as arguments, or type them when asked. The Linux user defaults to `ubuntu`. |
 | `git/setup.sh` | Installs Git and creates `~/.ssh/id_ed25519` for the Linux user. A second run prints the existing public key and does not replace it. |
 | `nodejs/setup.sh` | Installs nvm v0.40.3, Node.js (default 24), and PM2 for the Linux user. Does not copy an app or start PM2. |
