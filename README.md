@@ -104,6 +104,22 @@ Writes an Nginx site that proxies `API_DOMAIN` to `NODE_UPSTREAM` (`host:port`).
 sudo API_DOMAIN=api.example.com NODE_UPSTREAM=127.0.0.1:3000 bash hosting/backend.sh
 ```
 
+### Backend folder
+
+Create a folder named `backend` and give it to the `ubuntu` user. Run these from the home directory. Upload the code there yourself with SFTP, using the same `ubuntu` user and the PEM or `personal` key. The remote path is `backend`. Nginx still only proxies to the Node port. This folder does not change the Nginx site.
+
+```bash
+sudo mkdir -p backend
+```
+
+```bash
+sudo chown ubuntu:ubuntu backend
+```
+
+```bash
+sudo chmod 755 backend
+```
+
 ## 7. HTTPS
 
 Point DNS at this server before requesting a certificate. The server needs outbound HTTPS.
