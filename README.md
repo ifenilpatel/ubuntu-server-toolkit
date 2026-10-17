@@ -2,10 +2,21 @@
 
 Bash scripts for a fresh Ubuntu server. Each script does one job and must be run as root.
 
-Copy the folder you need onto the server, then run the script from that folder:
+## Get the scripts
+
+On the server, install Git if it is missing, then clone the public repo:
 
 ```bash
-sudo bash setup.sh
+sudo apt-get update
+sudo apt-get install -y git
+git clone https://github.com/ifenilpatel/ubuntu-server-toolkit.git
+cd ubuntu-server-toolkit
+```
+
+Run each script from that folder, for example:
+
+```bash
+sudo bash server-setup/setup.sh
 ```
 
 Scripts ask for missing values. Press Enter to keep a default. You can also set the same values as environment variables and skip the prompts.
