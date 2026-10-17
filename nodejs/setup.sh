@@ -53,4 +53,33 @@ echo "npm $(npm -v)"
 echo "pm2 $(pm2 -v)"
 EOS
 
+bashrc="${home}/.bashrc"
+touch "${bashrc}"
+above_return=$(sed '/^case \$- in/,$d' "${bashrc}")
+if grep -qF 'NVM_DIR="$HOME/.nvm"' <<<"${above_return}" && grep -qF 'nvm.sh' <<<"${above_return}"; then
+  echo "nvm is already sourced from ${bashrc}."
+else
+  tmp=$(mktemp)
+  inserted=0
+  while IFS= read -r line || [[ -n "${line}" ]]; do
+    if [[ "${inserted}" -eq 0 && "${line}" == 'case $- in'* ]]; then
+      printf '%s\n' 'export NVM_DIR="$HOME/.nvm"' '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"' '' >> "${tmp}"
+      inserted=1
+    fi
+    printf '%s\n' "${line}" >> "${tmp}"
+  done < "${bashrc}"
+  if [[ "${inserted}" -eq 0 ]]; then
+    tmp2=$(mktemp)
+    printf '%s\n' 'export NVM_DIR="$HOME/.nvm"' '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"' '' >> "${tmp2}"
+    cat "${tmp}" >> "${tmp2}"
+    mv "${tmp2}" "${tmp}"
+  fi
+  mv "${tmp}" "${bashrc}"
+  echo "Sourced nvm from ${bashrc}."
+fi
+chown "${NVM_USER}:${NVM_USER}" "${bashrc}"
+chmod 644 "${bashrc}"
+
+sudo -u "${NVM_USER}" -H bash -ic 'node -v && npm -v'
+
 echo "Node.js setup complete for ${NVM_USER}."
