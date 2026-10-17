@@ -49,15 +49,13 @@ sudo -u postgres psql -v ON_ERROR_STOP=1 \
   -v "db_user=${DB_USER}" \
   -v "db_name=${DB_NAME}" \
   -v "db_password=${DB_PASSWORD}" <<'SQL'
-DO $body$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'db_user') THEN
-    EXECUTE format('CREATE ROLE %I LOGIN PASSWORD %L', :'db_user', :'db_password');
-  ELSE
-    EXECUTE format('ALTER ROLE %I WITH LOGIN PASSWORD %L', :'db_user', :'db_password');
-  END IF;
-END
-$body$;
+SELECT format('CREATE ROLE %I LOGIN PASSWORD %L', :'db_user', :'db_password')
+WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'db_user')
+\gexec
+
+SELECT format('ALTER ROLE %I WITH LOGIN PASSWORD %L', :'db_user', :'db_password')
+WHERE EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'db_user')
+\gexec
 
 SELECT format('CREATE DATABASE %I OWNER %I', :'db_name', :'db_user')
 WHERE NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = :'db_name')
