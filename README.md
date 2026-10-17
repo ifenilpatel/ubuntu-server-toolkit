@@ -4,34 +4,119 @@ Bash scripts for a fresh Ubuntu server. Each script does one job and must be run
 
 ## Get the scripts
 
-On the server, install Git if it is missing, then clone the public repo:
+On the server, install Git if it is missing, then clone the public repo. Each block below is one copyable command.
 
 ```bash
-sudo apt-get update
-sudo apt-get install -y git
+sudo apt-get update && sudo apt-get install -y git
+```
+
+```bash
 git clone https://github.com/ifenilpatel/ubuntu-server-toolkit.git
+```
+
+```bash
 cd ubuntu-server-toolkit
 ```
 
-Run each script from that folder, for example:
+Replace the placeholder values, then run the scripts from that folder. Setting the variables skips the prompts.
+
+## Commands
+
+Clock, packages, 2G swap, UFW (22, 80, 443), fail2ban, unattended upgrades.
 
 ```bash
 sudo bash server-setup/setup.sh
 ```
 
-Scripts ask for missing values. Press Enter to keep a default. You can also set the same values as environment variables and skip the prompts.
+Key-only SSH on port 22. Existing `authorized_keys` lines stay, including the PEM key. Add this PC's public key as an extra argument (`ssh-ed25519 ...` or `ssh-rsa ...`).
 
-## Order
+```bash
+sudo SSH_USER=ubuntu bash ssh/setup.sh 'ssh-ed25519 AAAA... comment'
+```
 
-1. `server-setup/setup.sh` — clock, packages, swap, firewall
-2. `ssh/setup.sh` — key-only SSH on port 22
-3. `git/setup.sh` — Git and an SSH key for the app user
-4. `nodejs/setup.sh` — nvm, Node.js, and PM2
-5. `nginx/setup.sh` — Nginx
-6. `hosting/frontend.sh` and `hosting/backend.sh` — site configs
-7. `certbot/setup.sh` then `certbot/add-domain.sh` — HTTPS after DNS points here
-8. `database/setup.sh`, `database/create-database.sh`, and optionally `database/allow-ip.sh`
-9. `redis/setup.sh` and optionally `redis/allow-ip.sh`
+From the PC that owns that key. On Linux or macOS:
+
+```bash
+ssh -i ~/.ssh/id_ed25519 ubuntu@YOUR_PUBLIC_IP
+```
+
+On Windows PowerShell:
+
+```powershell
+ssh -i $env:USERPROFILE\.ssh\id_ed25519 ubuntu@YOUR_PUBLIC_IP
+```
+
+Git and an SSH key for the app user. A second run prints the existing public key.
+
+```bash
+sudo GIT_USER=ubuntu GIT_EMAIL=you@example.com bash git/setup.sh
+```
+
+nvm, Node.js, and PM2. Does not copy an app or start PM2.
+
+```bash
+sudo NVM_USER=ubuntu NODE_VERSION=24 bash nodejs/setup.sh
+```
+
+Nginx.
+
+```bash
+sudo bash nginx/setup.sh
+```
+
+Static frontend. Removes the default site. Does not build or copy the app.
+
+```bash
+sudo DOMAIN=example.com WEB_ROOT=/var/www/example.com bash hosting/frontend.sh
+```
+
+API proxy. Does not start PM2.
+
+```bash
+sudo API_DOMAIN=api.example.com NODE_UPSTREAM=127.0.0.1:3000 bash hosting/backend.sh
+```
+
+Certbot. Nginx must already be running. This does not request a certificate.
+
+```bash
+sudo bash certbot/setup.sh
+```
+
+Certificate after DNS points at this server.
+
+```bash
+sudo DOMAIN=example.com EMAIL=you@example.com bash certbot/add-domain.sh
+```
+
+PostgreSQL. Does not create an application database.
+
+```bash
+sudo bash database/setup.sh
+```
+
+Application role and database. The password is not stored in a file.
+
+```bash
+sudo DB_NAME=app DB_USER=app DB_PASSWORD='change-me' bash database/create-database.sh
+```
+
+One client IPv4 on port 5432. Run again for another address.
+
+```bash
+sudo DB_CLIENT_IP=203.0.113.10 bash database/allow-ip.sh
+```
+
+Redis with `requirepass`. A second run keeps the existing password when `REDIS_PASSWORD` is unset.
+
+```bash
+sudo REDIS_PASSWORD='change-me' bash redis/setup.sh
+```
+
+One client IPv4 on port 6379. On the Node server set `REDIS_HOST` to this machine's private IP and set `REDIS_PASSWORD`.
+
+```bash
+sudo REDIS_CLIENT_IP=203.0.113.10 bash redis/allow-ip.sh
+```
 
 ## Scripts
 
